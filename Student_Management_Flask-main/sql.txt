@@ -1,0 +1,257 @@
+-- =========================
+-- RESET DATABASE
+-- =========================
+DROP TABLE IF EXISTS proposed_scr;
+DROP TABLE IF EXISTS Score;
+DROP TABLE IF EXISTS Enrollment;
+DROP TABLE IF EXISTS Course_Class;
+DROP TABLE IF EXISTS Lecturer;
+DROP TABLE IF EXISTS Course;
+DROP TABLE IF EXISTS Student;
+DROP TABLE IF EXISTS Admin;
+
+-- =========================
+-- STUDENT TABLE
+-- =========================
+CREATE TABLE Student (
+    student_id VARCHAR(20) PRIMARY KEY,
+    administrative_class VARCHAR(50),
+    student_name VARCHAR(100) NOT NULL,
+    student_gender VARCHAR(10),
+    student_bd DATE,
+    student_address VARCHAR(200),
+    student_contact VARCHAR(20),
+    student_email VARCHAR(100),
+    password VARCHAR(100) NOT NULL,
+    CPA DECIMAL(3,2)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================
+-- COURSE TABLE
+-- =========================
+CREATE TABLE Course (
+    course_id VARCHAR(20) PRIMARY KEY,
+    course_name VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================
+-- LECTURER TABLE
+-- =========================
+CREATE TABLE Lecturer (
+    lecturer_id VARCHAR(20) PRIMARY KEY,
+    lecturer_name VARCHAR(100) NOT NULL,
+    lecturer_contact VARCHAR(20),
+    lecturer_email VARCHAR(100),
+    lecturer_phone VARCHAR(20),
+    lecturer_faculty VARCHAR(100),
+    lecturer_avatar VARCHAR(255),
+    password VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================
+-- ADMIN TABLE
+-- =========================
+CREATE TABLE Admin (
+    admin_id VARCHAR(20) PRIMARY KEY,
+    admin_name VARCHAR(100),
+    password VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================
+-- COURSE_CLASS TABLE
+-- =========================
+CREATE TABLE Course_Class (
+  course_class_id VARCHAR(20) NOT NULL,
+  volume INT DEFAULT NULL,
+  lecturer_id VARCHAR(20) DEFAULT NULL,
+  course_id VARCHAR(20) DEFAULT NULL,
+  class_day TINYINT UNSIGNED DEFAULT NULL COMMENT '1=Thứ 2, 2=Thứ 3, ..., 7=Chủ nhật',
+  start_time TIME DEFAULT NULL,
+  end_time TIME DEFAULT NULL,
+  class_room VARCHAR(50) DEFAULT NULL,
+  semester VARCHAR(20) DEFAULT NULL,
+  academic_year VARCHAR(20) DEFAULT NULL,
+  start_date DATE DEFAULT NULL,
+  end_date DATE DEFAULT NULL,
+  week_start INT UNSIGNED DEFAULT NULL COMMENT 'Tuần học bắt đầu',
+  week_end INT UNSIGNED DEFAULT NULL COMMENT 'Tuần học kết thúc',
+  PRIMARY KEY (course_class_id),
+  KEY (lecturer_id),
+  KEY (course_id),
+  CONSTRAINT fk_course_class_lecturer
+      FOREIGN KEY (lecturer_id)
+      REFERENCES Lecturer(lecturer_id)
+      ON DELETE SET NULL
+      ON UPDATE CASCADE,
+  CONSTRAINT fk_course_class_course
+      FOREIGN KEY (course_id)
+      REFERENCES Course(course_id)
+      ON DELETE SET NULL
+      ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================
+-- ENROLLMENT TABLE
+-- =========================
+CREATE TABLE Enrollment (
+    student_id VARCHAR(20) NOT NULL,
+    course_class_id VARCHAR(20) NOT NULL,
+    PRIMARY KEY (student_id, course_class_id),
+    FOREIGN KEY (student_id) REFERENCES Student(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (course_class_id) REFERENCES Course_Class(course_class_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================
+-- SCORE TABLE
+-- =========================
+CREATE TABLE Score (
+    student_id VARCHAR(20) NOT NULL,
+    course_class_id VARCHAR(20) NOT NULL,
+    attendance_scr DECIMAL(4,1),
+    midterm_scr DECIMAL(4,1),
+    finalterm_scr DECIMAL(4,1),
+    PRIMARY KEY (student_id, course_class_id),
+    FOREIGN KEY (student_id) REFERENCES Student(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (course_class_id) REFERENCES Course_Class(course_class_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================
+-- PROPOSED SCORE TABLE
+-- =========================
+CREATE TABLE proposed_scr (
+    proposal_id INT AUTO_INCREMENT PRIMARY KEY,
+    proposed_attendance_scr DECIMAL(4,1),
+    proposed_midterm_scr DECIMAL(4,1),
+    proposed_finalterm_scr DECIMAL(4,1),
+    student_id VARCHAR(20) NOT NULL,
+    course_class_id VARCHAR(20) NOT NULL,
+    FOREIGN KEY (student_id, course_class_id)
+        REFERENCES Score(student_id, course_class_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================
+-- ADMIN DATA
+-- =========================
+INSERT INTO Admin (admin_id, admin_name, password)
+VALUES
+('A001', 'Nguyen Van Admin', 'admin123'),
+('A002', 'Tran Thi Dieu', 'admin456'),
+('A003', 'Le Hong Quan', 'admin789');
+
+-- =========================
+-- LECTURERS DATA
+-- =========================
+INSERT INTO Lecturer (lecturer_id, lecturer_name, lecturer_contact, lecturer_email, lecturer_phone, lecturer_faculty, password)
+VALUES
+('L001', 'Dr. Nguyen Minh Tuan', '0123456789', 'tuan@university.edu', '0905123123', 'Khoa Công nghệ thông tin', 'pass1'),
+('L002', 'ThS. Le Thi Lan', '0987654321', 'lan@university.edu', '0905432123', 'Khoa Kinh tế', 'pass2'),
+('L003', 'TS. Pham Quoc Bao', '0933222111', 'bao@university.edu', '0905333444', 'Khoa Điện tử Viễn thông', 'pass3'),
+('L004', 'ThS. Tran Hoang Nam', '0911122233', 'nam@university.edu', '0905666777', 'Khoa Toán - Tin', 'pass4'),
+('L005', 'PGS. Do Thi Mai', '0922333444', 'mai@university.edu', '0905999888', 'Khoa Cơ khí', 'pass5');
+
+-- =========================
+-- COURSES DATA
+-- =========================
+INSERT INTO Course (course_id, course_name)
+VALUES
+('C001', 'Cơ sở dữ liệu'),
+('C002', 'Lập trình Python'),
+('C003', 'Kinh tế vi mô'),
+('C004', 'Xác suất thống kê'),
+('C005', 'Điện tử cơ bản');
+
+-- =========================
+-- COURSE_CLASS DATA
+-- =========================
+INSERT INTO Course_Class (course_class_id, volume, lecturer_id, course_id, class_day, start_time, end_time, class_room, semester, academic_year, start_date, end_date, week_start, week_end)
+VALUES
+('CC001', 50, 'L001', 'C001', 2, '07:30:00', '09:30:00', 'A201', 'Học kỳ 1', '2024-2025', '2024-09-02', '2024-12-20', 1, 16),
+('CC002', 45, 'L001', 'C002', 3, '09:45:00', '11:45:00', 'B101', 'Học kỳ 1', '2024-2025', '2024-09-03', '2024-12-21', 1, 16),
+('CC003', 60, 'L002', 'C003', 4, '13:00:00', '15:00:00', 'C302', 'Học kỳ 1', '2024-2025', '2024-09-04', '2024-12-22', 1, 16),
+('CC004', 55, 'L004', 'C004', 5, '15:15:00', '17:15:00', 'A105', 'Học kỳ 2', '2024-2025', '2025-02-10', '2025-05-25', 1, 15),
+('CC005', 40, 'L003', 'C005', 6, '07:30:00', '09:30:00', 'D204', 'Học kỳ 2', '2024-2025', '2025-02-14', '2025-05-30', 1, 15),
+('CC006', 30, 'L005', 'C005', 2, '09:45:00', '11:45:00', 'B202', 'Học kỳ 2', '2024-2025', '2025-02-17', '2025-05-28', 1, 15),
+('CC007', 35, 'L002', 'C003', 3, '13:00:00', '15:00:00', 'C101', 'Học kỳ 2', '2024-2025', '2025-02-18', '2025-05-29', 1, 15),
+('CC008', 25, 'L001', 'C001', 4, '15:15:00', '17:15:00', 'A301', 'Học kỳ 2', '2024-2025', '2025-02-19', '2025-05-30', 1, 15);
+
+-- =========================
+-- STUDENTS DATA
+-- =========================
+INSERT INTO Student (student_id, administrative_class, student_name, student_gender, student_bd, student_address, student_contact, student_email, password, CPA)
+VALUES
+('S001', 'D23CQCN01', 'Nguyen Van A', 'Nam', '2001-01-15', 'Ha Noi', '0901111111', 's001@stu.edu', '123', 3.50),
+('S002', 'D23CQCN01', 'Tran Thi B', 'Nu', '2001-03-20', 'Hai Phong', '0902222222', 's002@stu.edu', '123', 3.20),
+('S003', 'D23CQCN02', 'Le Van C', 'Nam', '2001-06-18', 'Nam Dinh', '0903333333', 's003@stu.edu', '123', 2.90),
+('S004', 'D23CQCN02', 'Pham Thi D', 'Nu', '2001-08-25', 'Ha Noi', '0904444444', 's004@stu.edu', '123', 3.70),
+('S005', 'D23CQCN03', 'Hoang Van E', 'Nam', '2001-02-11', 'Thai Binh', '0905555555', 's005@stu.edu', '123', 2.80),
+('S006', 'D23CQCN03', 'Do Thi F', 'Nu', '2001-09-09', 'Ha Noi', '0906666666', 's006@stu.edu', '123', 3.10),
+('S007', 'D23CQCN04', 'Nguyen Van G', 'Nam', '2001-10-05', 'Hai Duong', '0907777777', 's007@stu.edu', '123', 3.00),
+('S008', 'D23CQCN04', 'Pham Thi H', 'Nu', '2001-12-12', 'Ha Noi', '0908888888', 's008@stu.edu', '123', 3.40),
+('S009', 'D23CQCN05', 'Tran Van I', 'Nam', '2001-05-01', 'Ninh Binh', '0909999999', 's009@stu.edu', '123', 2.75),
+('S010', 'D23CQCN05', 'Le Thi J', 'Nu', '2001-07-22', 'Ha Noi', '0910000000', 's010@stu.edu', '123', 3.25);
+
+-- =========================
+-- ENROLLMENT DATA
+-- =========================
+INSERT INTO Enrollment (student_id, course_class_id)
+VALUES
+('S001', 'CC001'), ('S002', 'CC001'), ('S003', 'CC001'),
+('S004', 'CC002'), ('S005', 'CC002'),
+('S006', 'CC003'), ('S007', 'CC004'),
+('S008', 'CC005'), ('S009', 'CC006'), ('S010', 'CC007'),
+('S001', 'CC008'), ('S002', 'CC008');
+
+-- =========================
+-- SCORES DATA
+-- =========================
+INSERT INTO Score (student_id, course_class_id, attendance_scr, midterm_scr, finalterm_scr)
+VALUES
+('S001', 'CC001', 8.5, 7.0, 8.0),
+('S002', 'CC001', 9.0, 8.5, 8.8),
+('S003', 'CC001', 7.5, 6.5, 7.0),
+('S004', 'CC002', 8.0, 7.5, 8.0),
+('S005', 'CC002', 6.5, 6.0, 7.0),
+('S006', 'CC003', 9.5, 9.0, 9.2),
+('S007', 'CC004', 8.0, 7.8, 8.5),
+('S008', 'CC005', 7.5, 7.0, 7.5),
+('S009', 'CC006', 8.2, 8.0, 8.3),
+('S010', 'CC007', 9.0, 8.5, 9.0),
+('S001', 'CC008', 9.5, 9.0, 9.5),
+('S002', 'CC008', 8.8, 8.0, 8.5);
+
+-- =========================
+-- PROPOSED SCORES DATA
+-- =========================
+INSERT INTO proposed_scr (proposed_attendance_scr, proposed_midterm_scr, proposed_finalterm_scr, student_id, course_class_id)
+VALUES
+(9.0, 7.5, 8.5, 'S001', 'CC001'),
+(9.5, 8.8, 9.0, 'S002', 'CC001'),
+(8.0, 7.0, 7.5, 'S003', 'CC001'),
+(8.5, 7.5, 8.5, 'S004', 'CC002'),
+(7.0, 6.5, 7.5, 'S005', 'CC002'),
+(9.8, 9.5, 9.5, 'S006', 'CC003'),
+(8.2, 8.0, 8.8, 'S007', 'CC004'),
+(7.8, 7.5, 7.7, 'S008', 'CC005'),
+(8.5, 8.3, 8.8, 'S009', 'CC006'),
+(9.2, 8.8, 9.2, 'S010', 'CC007'),
+(9.7, 9.5, 9.8, 'S001', 'CC008'),
+(9.0, 8.2, 8.7, 'S002', 'CC008');
+
+-- =========================
+-- CHUYỂN VOLUME TỪ COURSE_CLASS -> COURSE
+-- (tắt safe mode để tránh lỗi Error Code 1175)
+-- =========================
+ALTER TABLE Course
+ADD COLUMN volume INT;
+
+SET SQL_SAFE_UPDATES = 0;
+
+UPDATE Course c
+JOIN Course_Class cc ON c.course_id = cc.course_id
+SET c.volume = cc.volume;
+
+SET SQL_SAFE_UPDATES = 1;
+
+ALTER TABLE Course_Class
+DROP COLUMN volume;
